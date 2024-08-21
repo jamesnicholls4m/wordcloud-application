@@ -50,9 +50,5 @@ if st.button("Search A2Z List"):
 # Save this script as streamlit_app.py and run it using the command:
 # streamlit run streamlit_app.py
 
-git add requirements.txt  # or environment.yml / setup.py
-git commit -m "Upgrade OpenAI package to <new_version>"
-git push origin <your_branch>
-
 # Ensure you have the necessary packages installed
 # pip install streamlit pandas openai requests
