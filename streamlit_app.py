@@ -61,21 +61,22 @@ if uploaded_file is not None:
 else:
     text = input_text
 
-preprocessed_text = preprocess_text(text)
+if text:
+    preprocessed_text = preprocess_text(text)
 
-# Word cloud settings
-st.sidebar.header("Word Cloud Settings")
-num_words = st.sidebar.slider("Maximum number of words", min_value=10, max_value=500, value=100)
-min_frequency = st.sidebar.slider("Minimum word frequency", min_value=1, max_value=10, value=1)
-max_font_size = st.sidebar.slider("Maximum font size", min_value=10, max_value=100, value=60)
-text_color = st.sidebar.selectbox("Text color", options=['black', 'Colorful'])
-text_case = st.sidebar.selectbox("Text case", options=['Original', 'Upper case', 'Lower case'])
-additional_stopwords = st.sidebar.text_area("Additional stopwords (separated by commas)").split(',')
+    # Word cloud settings
+    st.sidebar.header("Word Cloud Settings")
+    num_words = st.sidebar.slider("Maximum number of words", min_value=10, max_value=500, value=100)
+    min_frequency = st.sidebar.slider("Minimum word frequency", min_value=1, max_value=10, value=1)
+    max_font_size = st.sidebar.slider("Maximum font size", min_value=10, max_value=100, value=60)
+    text_color = st.sidebar.selectbox("Text color", options=['black', 'Colorful'])
+    text_case = st.sidebar.selectbox("Text case", options=['Original', 'Upper case', 'Lower case'])
+    additional_stopwords = st.sidebar.text_area("Additional stopwords (separated by commas)").split(',')
 
-if st.button('Generate Word Cloud'):
-    wordcloud = generate_wordcloud(preprocessed_text, num_words, max_font_size - min_frequency, additional_stopwords, text_color, text_case)
-    plt.figure()
-    plt.imshow(wordcloud, interpolation='bilinear')
-    plt.axis('off')
-    st.pyplot(plt)
-    st.download_button('Download PNG', data=wordcloud.to_image(), file_name='wordcloud.png', mime='image/png')
+    if st.button('Generate Word Cloud'):
+        wordcloud = generate_wordcloud(preprocessed_text, num_words, max_font_size - min_frequency, additional_stopwords, text_color, text_case)
+        plt.figure()
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis('off')
+        st.pyplot(plt)
+        st.download_button('Download PNG', data=wordcloud.to_image(), file_name='wordcloud.png', mime='image/png')
