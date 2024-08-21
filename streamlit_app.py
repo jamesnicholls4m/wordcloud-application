@@ -6,7 +6,7 @@ import openai
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Load data from GitHub
-@st.cache
+@st.cache_data
 def load_data_from_github():
     url = ('https://raw.githubusercontent.com/jamesnicholls4m/wordcloud-application/main/'
            'NATA%20A2Z%20List%20-%20August%202024%20-%20v1.xlsx')
@@ -15,14 +15,17 @@ def load_data_from_github():
 
 # Function to search the A2Z list
 def search_a2z_list(df, input_text):
+    # Create a ChatCompletion request
     response = openai.ChatCompletion.create(
-      model="gpt-3.5-turbo",
-      messages=[
+        model="gpt-3.5-turbo",
+        messages=[
             {"role": "system", "content": "You are an assistant that provides contact details."},
             {"role": "user", "content": f"Find the best matching contact for: {input_text}"}
         ]
     )
-    message = response.choices[0]['message']['content'].strip()
+
+    # Extract the message content
+    message = response.choices[0].message['content'].strip()
     st.write(f"ChatGPT Interpretation: {message}")
 
     # Process the response to search in relevant columns
