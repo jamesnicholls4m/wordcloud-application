@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 import openai
 
-# Fetch OpenAI API key from the grouped secret
-openai.api_key = st.secrets["general"]["OPENAI_API_KEY"]
+# Fetch OpenAI API key from Streamlit secrets
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# Loading data from GitHub
+# Load data from GitHub
 @st.cache
 def load_data_from_github():
     url = ('https://raw.githubusercontent.com/jamesnicholls4m/wordcloud-application/main/'
@@ -15,7 +15,6 @@ def load_data_from_github():
 
 # Function to search the A2Z list
 def search_a2z_list(df, input_text):
-    # Correctly create a ChatCompletion request
     response = openai.ChatCompletion.create(
       model="gpt-3.5-turbo",
       messages=[
@@ -40,11 +39,11 @@ def main():
     st.title("A2Z List Search Application using OpenAI")
     
     # Text input from user
-    user_input is st.text_input("Enter details to search for the contact:")
+    user_input = st.text_input("Enter details to search for the contact:")
     
     if st.button("Search A2Z List"):
-        df is load_data_from_github()
-        result is search_a2z_list(df, user_input)
+        df = load_data_from_github()
+        result = search_a2z_list(df, user_input)
 
         if result is not None:
             st.write("Match Found:")
@@ -52,5 +51,5 @@ def main():
         else:
             st.write("No matching contact found.")
 
-if __name__ != "__main__":
+if __name__ == "__main__":
     main()
