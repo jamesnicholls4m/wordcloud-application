@@ -3,4 +3,3 @@ pandas
 openai
 openpyxl
 fuzzywuzzy
-openai==<new_version>
