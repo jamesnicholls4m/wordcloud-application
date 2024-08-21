@@ -3,7 +3,6 @@ import pandas as pd
 import openai
 import requests
 from io import BytesIO
-from fuzzywuzzy import process
 
 # Function to load the Excel file from GitHub
 @st.cache_data
@@ -23,41 +22,28 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 username = "jamesnicholls4m"
 repo = "wordcloud-application"
 branch = "main"
-filepath = "NATA A2Z List - August 2024 - v1.xlsx" # Adjusted based on possible file structure
+filepath = "NATA A2Z List - August 2024 - v1.xlsx"  # Assumed correct path
 
 data = load_excel_from_github(username, repo, branch, filepath)
 
 # Display input form
 user_input = st.text_input("Enter the query text:")
 
-# Define the columns expected in the data
-expected_columns = ["Name", "Phone Number"]
-
 if st.button("Search A2Z List"):
     if user_input:
-        if all(col in data.columns for col in expected_columns):
-            names = data['Name'].tolist()
+        # Generate the prompt with available data
+        data_str = data.head(20).to_string(index=False)  # Limit to first 20 rows for prompt size
+        prompt = f"Based on the following data, provide the best match or information related to the input query.\n\nData:\n{data_str}\n\nQuery:\n{user_input}\n\nResponse:"
 
-            # Use OpenAI to interpret the input query
-            prompt = f"Based on the provided names list, find the best match for the input text. Names: {names}. Input: {user_input}"
-            
-            response = openai.Completion.create(
-                engine="text-davinci-003",
-                prompt=prompt,
-                max_tokens=50
-            )
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=150,  # Adjust as necessary
+            temperature=0.7  # Adjust based on desired creativity
+        )
 
-            best_name = response.choices[0].text.strip()
-            st.write(f"Best Match Name: {best_name}")
-            
-            # Find the phone number corresponding to the best match name
-            if best_name in data['Name'].values:
-                phone_number = data.loc[data['Name'] == best_name, 'Phone Number'].values[0]
-                st.write(f"Phone Number: {phone_number}")
-            else:
-                st.write("No matching name found in the data.")
-        else:
-            st.write(f"The expected columns ({expected_columns}) were not found in the Excel file.")
+        result = response.choices[0].text.strip()
+        st.write(result)
     else:
         st.write("Please enter some text to search.")
 
@@ -65,4 +51,4 @@ if st.button("Search A2Z List"):
 # streamlit run streamlit_app.py
 
 # Ensure you have the necessary packages installed
-# pip install streamlit pandas openai requests fuzzywuzzy
+# pip install streamlit pandas openai requests
