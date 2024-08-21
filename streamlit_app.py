@@ -15,7 +15,6 @@ def load_data_from_github():
 
 # Function to search the A2Z list
 def search_a2z_list(df, input_text):
-    # Create a ChatCompletion request
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -24,8 +23,7 @@ def search_a2z_list(df, input_text):
         ]
     )
 
-    # Extract the message content
-    message = response.choices[0].message['content'].strip()
+    message = response['choices'][0]['message']['content'].strip()
     st.write(f"ChatGPT Interpretation: {message}")
 
     # Process the response to search in relevant columns
