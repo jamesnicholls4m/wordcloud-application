@@ -4,7 +4,7 @@ import pandas as pd
 import requests
 from io import BytesIO
 
-# Initialize OpenAI with your API key (make sure to set this in Streamlit secrets or environment variables securely)
+# Ensure you have the most recent OpenAI API key and module
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # GitHub file details
