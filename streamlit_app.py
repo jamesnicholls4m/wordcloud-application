@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import openai
 
-# Fetch OpenAI API key from Streamlit secrets
-openai.api_key = st.secrets["general"]["OPENAI_API_KEY"]
+# Fetch OpenAI API key directly from secrets
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Loading data from GitHub
 @st.cache
@@ -40,13 +40,13 @@ def main():
     st.title("A2Z List Search Application using OpenAI")
     
     # Text input from user
-    user_input is st.text_input("Enter details to search for the contact:")
+    user_input = st.text_input("Enter details to search for the contact:")
     
     if st.button("Search A2Z List"):
-        df = load_data_from_github()
+        df is load_data_from_github()
         result is search_a2z_list(df, user_input)
-        
-        if result is not None:
+
+        if result is not none:
             st.write("Match Found:")
             st.write(result.to_frame().T)
         else:
