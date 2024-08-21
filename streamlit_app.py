@@ -1,11 +1,12 @@
 import streamlit as st
-import openai
 import pandas as pd
 import requests
 from io import BytesIO
+from openai import OpenAI
 
 # Ensure you have the most recent OpenAI API key and module
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+client = OpenAI(api_key=openai_api_key)
 
 # GitHub file details
 username = "jamesnicholls4m"
@@ -15,7 +16,7 @@ file_path = "NATA A2Z List - August 2024 - v1.xlsx"
 file_url = f"https://github.com/{username}/{repo}/raw/{branch}/{file_path}"
 
 # Function to load Excel file from GitHub
-@st.cache
+@st.cache_data
 def load_data():
     r = requests.get(file_url)
     if r.status_code == 200:
@@ -26,7 +27,7 @@ def load_data():
         st.error("Failed to load the file from GitHub.")
         return pd.DataFrame()
 
-# Function to interact with GPT-4 model to search for the best match
+# Function to interact with GPT-4-Turbo model to search for the best match
 def search_a2z_list(input_text, df):
     # Convert DataFrame to string for the prompt
     data_sample = df.head(10).to_string(index=False)
@@ -38,9 +39,9 @@ def search_a2z_list(input_text, df):
         {"role": "user", "content": prompt}
     ]
 
-    # Query the GPT-4 model
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
+    # Query the GPT-4-Turbo model
+    completion = client.chat.completions.create(
+        model="gpt-4-turbo",
         messages=conversation,
         temperature=0,
         top_p=1,
@@ -48,7 +49,7 @@ def search_a2z_list(input_text, df):
         presence_penalty=0
     )
 
-    response_text = response['choices'][0]['message']['content'].strip()
+    response_text = completion.choices[0].message.content.strip()
 
     # Simplistic parsing, adjust based on actual response format
     if "Name:" in response_text and "Phone:" in response_text:
