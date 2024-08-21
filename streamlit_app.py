@@ -1,11 +1,12 @@
 import streamlit as st
-import openai
 import pandas as pd
 import requests
 from io import BytesIO
+from openai import OpenAI
+from config import OPENAI_API_KEY
 
-# Initialize OpenAI with your API key
-openai.api_key = 'YOUR_OPENAI_API_KEY'
+# Initialize OpenAI client
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 # GitHub file details
 username = "jamesnicholls4m"
@@ -15,7 +16,7 @@ file_path = "NATA A2Z List - August 2024 - v1.xlsx"
 file_url = f"https://github.com/{username}/{repo}/raw/{branch}/{file_path}"
 
 # Function to load Excel file from GitHub
-@st.cache()
+@st.cache
 def load_data():
     r = requests.get(file_url)
     if r.status_code == 200:
@@ -26,25 +27,38 @@ def load_data():
         st.error("Failed to load the file from GitHub.")
         return pd.DataFrame()
 
+# Function to interact with GPT-4 model to search for the best match
 def search_a2z_list(input_text, df):
-    prompt = f"Given the data in the table below, find the best match for the input query: {input_text}\n\n{df.head(10).to_string(index=False)}"
-    
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        prompt=prompt,
-        max_tokens=200,
+    # Convert DataFrame to string for the prompt
+    data_sample = df.head(10).to_string(index=False)
+    prompt = f"Given the following data, find the best match for the input query:\n\nData:\n{data_sample}\n\nQuery: {input_text}"
+
+    # Define the conversation for the chat model
+    conversation = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": prompt}
+    ]
+
+    # Query the GPT-4 model
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=conversation,
+        temperature=0,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0
     )
-    response_text = response.choices[0].text.strip()
-    
-    # Simple parsing (adjust according to actual format)
-    try:
-        parts = response_text.split("\n")
-        name = parts[0].split(":")[-1].strip()
-        phone = parts[1].split(":")[-1].strip()
-    except IndexError:
+
+    response_text = response.choices[0].message["content"].strip()
+
+    # Simplistic parsing, adjust based on actual response format
+    if "Name:" in response_text and "Phone:" in response_text:
+        name = response_text.split("Name:")[1].split("Phone:")[0].strip()
+        phone = response_text.split("Phone:")[1].strip()
+    else:
         name = "Not found"
         phone = "Not found"
-
+        
     return name, phone
 
 # Load data
