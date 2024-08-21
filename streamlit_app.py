@@ -1,10 +1,9 @@
 import streamlit as st
 import pandas as pd
-from openai import ChatCompletion
 import openai
 
-# OpenAI API key
-openai.api_key = 'your_openai_api_key_here'
+# Fetch OpenAI API key from Streamlit secrets
+openai.api_key = st.secrets["general"]["OPENAI_API_KEY"]
 
 # Loading data from GitHub
 @st.cache
@@ -29,8 +28,9 @@ def search_a2z_list(df, input_text):
     # Process the response to search in relevant columns
     match = df[df.apply(lambda row: row.astype(str).str.contains(message, case=False).any(), axis=1)]
     if not match.empty:
-        return match.iloc[0][['Subject', 'Standard', 'Activity', 'Service', 'NSW 02 9736 8222', 'VIC 03 9274 8200', 
-                              'QLD 07 3721 7300', 'WA 08 9486 2800', 'SA 08 8179 3400']]
+        return match.iloc[0][['Subject', 'Standard', 'Activity', 'Service', 'NSW 02 9736 8222', 
+                              'VIC 03 9274 8200', 'QLD 07 3721 7300', 'WA 08 9486 2800', 
+                              'SA 08 8179 3400']]
     else:
         return None
 
