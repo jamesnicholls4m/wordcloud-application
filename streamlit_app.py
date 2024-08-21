@@ -1,12 +1,11 @@
 import streamlit as st
+import openai
 import pandas as pd
 import requests
 from io import BytesIO
-from openai import OpenAI
-from config import OPENAI_API_KEY
 
-# Initialize OpenAI client
-client = OpenAI(api_key=OPENAI_API_KEY)
+# Initialize OpenAI with your API key (make sure to set this in Streamlit secrets or environment variables securely)
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # GitHub file details
 username = "jamesnicholls4m"
@@ -33,20 +32,14 @@ def search_a2z_list(input_text, df):
     data_sample = df.head(10).to_string(index=False)
     prompt = f"Given the following data, find the best match for the input query:\n\nData:\n{data_sample}\n\nQuery: {input_text}"
 
-    # Define the conversation for the chat model
-    conversation = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": prompt}
-    ]
-
     # Query the GPT-4 model
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-4",
-        messages=conversation,
-        temperature=0,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=200,
     )
 
     response_text = response.choices[0].message["content"].strip()
