@@ -1,5 +1,2 @@
 streamlit
-wordcloud
-matplotlib
-nltk
 pandas
