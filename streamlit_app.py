@@ -1,54 +1,63 @@
 import streamlit as st
-import pandas as pd
 import openai
+import pandas as pd
 import requests
 from io import BytesIO
 
-# Function to load the Excel file from GitHub
-@st.cache_data
-def load_excel_from_github(username, repo, branch, filepath):
-    url = f"https://raw.githubusercontent.com/{username}/{repo}/{branch}/{filepath}"
-    response = requests.get(url)
-    response.raise_for_status()  # Ensure we notice bad responses
-    return pd.read_excel(BytesIO(response.content))
+# Initialize OpenAI with your API key
+openai.api_key = 'YOUR_OPENAI_API_KEY'
 
-# Streamlit application begins here
-st.title('Excel AI Search Application')
-
-# Retrieve the OpenAI API Key from Streamlit secrets
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-
-# Load the A2Z list file
+# GitHub file details
 username = "jamesnicholls4m"
 repo = "wordcloud-application"
 branch = "main"
-filepath = "NATA A2Z List - August 2024 - v1.xlsx"  # Assumed correct path
+file_path = "NATA A2Z List - August 2024 - v1.xlsx"
+file_url = f"https://github.com/{username}/{repo}/raw/{branch}/{file_path}"
 
-data = load_excel_from_github(username, repo, branch, filepath)
+# Function to load Excel file from GitHub
+@st.cache
+def load_data():
+    r = requests.get(file_url)
+    data = BytesIO(r.content)
+    df = pd.read_excel(data)
+    return df
 
-# Display input form
-user_input = st.text_input("Enter the query text:")
-
-if st.button("Search A2Z List"):
-    if user_input:
-        # Generate the prompt with available data
-        data_str = data.head(20).to_string(index=False)  # Limit to first 20 rows for prompt size
-        prompt = f"Based on the following data, provide the best match or information related to the input query.\n\nData:\n{data_str}\n\nQuery:\n{user_input}\n\nResponse:"
-
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            max_tokens=150,  # Adjust as necessary
-            temperature=0.7  # Adjust based on desired creativity
-        )
-
-        result = response.choices[0].text.strip()
-        st.write(result)
+# Function to interact with GPT-4 model to search for the best match
+def search_a2z_list(input_text, df):
+    prompt = f"Find the best match for the following input: {input_text}"
+    
+    # Query the model
+    response = openai.Completion.create(
+        engine="text-davinci-004",
+        prompt=prompt,
+        max_tokens=200
+    )
+    
+    response_text = response.choices[0].text.strip()
+    
+    # Example of how to parse the response, assuming it gives specific 'Name' and 'Phone' tokens.
+    # This part will depend on how the response is formatted by your specific prompt and model.
+    if "Name:" in response_text and "Phone:" in response_text:
+        name = response_text.split("Name:")[1].split("Phone:")[0].strip()
+        phone = response_text.split("Phone:")[1].strip()
     else:
-        st.write("Please enter some text to search.")
+        name = "Not found"
+        phone = "Not found"
+    
+    return name, phone
 
-# Save this script as streamlit_app.py and run it using the command:
-# streamlit run streamlit_app.py
+# Load data
+df = load_data()
 
-# Ensure you have the necessary packages installed
-# pip install streamlit pandas openai requests
+# Streamlit App configuration
+st.title("A2Z List Search Application")
+user_input = st.text_input("Enter query:", "Type here...")
+search_button = st.button("Search A2Z List")
+
+if search_button:
+    if user_input:
+        name, phone = search_a2z_list(user_input, df)
+        st.write(f"**Name:** {name}")
+        st.write(f"**Phone:** {phone}")
+    else:
+        st.write("Please enter a query to search the A2Z List.")
