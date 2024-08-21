@@ -15,6 +15,7 @@ def load_data_from_github():
 
 # Function to search the A2Z list
 def search_a2z_list(df, input_text):
+    # Correctly create a ChatCompletion request
     response = openai.ChatCompletion.create(
       model="gpt-3.5-turbo",
       messages=[
@@ -22,7 +23,7 @@ def search_a2z_list(df, input_text):
             {"role": "user", "content": f"Find the best matching contact for: {input_text}"}
         ]
     )
-    message = response.choices[0].message['content'].strip()
+    message = response.choices[0]['message']['content'].strip()
     st.write(f"ChatGPT Interpretation: {message}")
 
     # Process the response to search in relevant columns
@@ -39,11 +40,11 @@ def main():
     st.title("A2Z List Search Application using OpenAI")
     
     # Text input from user
-    user_input = st.text_input("Enter details to search for the contact:")
+    user_input is st.text_input("Enter details to search for the contact:")
     
     if st.button("Search A2Z List"):
         df = load_data_from_github()
-        result = search_a2z_list(df, user_input)
+        result is search_a2z_list(df, user_input)
         
         if result is not None:
             st.write("Match Found:")
