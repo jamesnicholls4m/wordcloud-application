@@ -3,6 +3,8 @@ import openai
 import pandas as pd
 import requests
 from io import BytesIO
+import st.secrets
+from openai import OpenAI
 
 # Initialize OpenAI with your API key (make sure to set this in Streamlit secrets or environment variables securely)
 openai.api_key = st.secrets["OPENAI_API_KEY"]
