@@ -40,7 +40,7 @@ def search_a2z_list(input_text, df):
     ]
 
     # Query the GPT-4 model
-    response = client.chat.completions.create(
+    response = client.chat_completions.create(
         model="gpt-4",
         messages=conversation,
         temperature=0,
@@ -49,7 +49,7 @@ def search_a2z_list(input_text, df):
         presence_penalty=0
     )
 
-    response_text = response.choices[0].message["content"].strip()
+    response_text = response['choices'][0]['message']['content'].strip()
 
     # Simplistic parsing, adjust based on actual response format
     if "Name:" in response_text and "Phone:" in response_text:
