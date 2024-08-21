@@ -1,8 +1,3 @@
-# .gitignore (ensure secrets.toml is ignored)
-.streamlit/secrets.toml
-
-
-# requirements.txt (updated to include the openai package)
 streamlit
 pandas
 openai
