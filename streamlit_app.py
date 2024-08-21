@@ -3,10 +3,9 @@ import openai
 import pandas as pd
 import requests
 from io import BytesIO
-from openai import OpenAI
 
 # Initialize OpenAI with your API key (make sure to set this in Streamlit secrets or environment variables securely)
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # GitHub file details
 username = "jamesnicholls4m"
@@ -40,7 +39,7 @@ def search_a2z_list(input_text, df):
     ]
 
     # Query the GPT-4 model
-    response = client.chat_completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=conversation,
         temperature=0,
