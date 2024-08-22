@@ -1,26 +1,43 @@
-if prompt := st.chat_input("What is up?"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    # Display user message in chat message container
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    # Display assitant message in chat message container
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        full_response = ""
-        # Simulate stream of response with milliseconds delay
-        for response in openai.ChatCompletion.create(
-            model=st.session_state["openai_model"],
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            #will provide lively writing
-            stream=True,
-        ):
-            #get content in response
-            full_response += response.choices[0].delta.get("content", "")
-            # Add a blinking cursor to simulate typing
-            message_placeholder.markdown(full_response + "▌")
-        message_placeholder.markdown(full_response)
-    # Add assistant response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+import streamlit as st
+import pandas as pd
+import requests
+from io import BytesIO
+
+@st.cache
+def load_data_from_github(username, repo, branch, file_path):
+    url = f"https://github.com/{username}/{repo}/raw/{branch}/{file_path}"
+    response = requests.get(url)
+    response.raise_for_status() # Check for request errors
+    return pd.read_excel(BytesIO(response.content))
+
+def search_a2z_list(dataframe, query):
+    # Filter rows based on query
+    filtered_df = dataframe[dataframe.apply(lambda row: row.astype(str).str.contains(query, case=False).any(), axis=1)]
+    return filtered_df
+
+# Load the data from GitHub
+username = "jamesnicholls4m"
+repo = "wordcloud-application"
+branch = "main"
+file_path = "NATA A2Z List - August 2024 - v1.xlsx"
+
+data = load_data_from_github(username, repo, branch, file_path)
+
+# Streamlit app
+st.title("Excel AI Web Application")
+st.write("Search the A2Z list for an appropriate name and phone number")
+
+query = st.text_input("Enter your search text:")
+if st.button("Search A2Z List"):
+    if query:
+        results = search_a2z_list(data, query)
+        if not results.empty:
+            st.write(f"Found {len(results)} matches:")
+            st.dataframe(results[['Name', 'Phone Number']]) # Displaying only Name and Phone Number columns
+        else:
+            st.write("No matches found")
+    else:
+        st.write("Please enter search text")
+
+# Run the app
+# To run this app, save it to a file (e.g., app.py) and run `streamlit run app.py` in your terminal.
