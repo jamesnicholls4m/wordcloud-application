@@ -45,18 +45,26 @@ if st.button("Search A2Z List"):
     if query:
         results = search_a2z_list(data, query)
         if not results.empty:
-            st.write(f"Found {len(results)} matches:")
-            display_columns = [
-                "Subject", "Standard", "Activity", "Service", 
-                "NSW 02 9736 8222", "VIC 03 9274 8200", "QLD 07 3721 7300", 
-                "WA 08 9486 2800", "SA 08 8179 3400"
+            st.write(f"Found {len(results)} matches.")
+            st.write(results)  # Displaying all columns to debug
+
+            # Assuming that the first match is the best match
+            best_match = results.iloc[0]
+            contact_name = best_match.get('Subject', 'Unknown')
+            # Trying each column for a phone number
+            phone_columns = [
+                'NSW 02 9736 8222', 'VIC 03 9274 8200', 'QLD 07 3721 7300', 
+                'WA 08 9486 2800', 'SA 08 8179 3400'
             ]
-            # Show all columns if expected column names are present
-            missing_columns = [col for col in display_columns if col not in results.columns]
-            if not missing_columns:
-                st.dataframe(results[display_columns])  # Displaying specific columns
-            else:
-                st.write(f"The following expected columns are missing from the data: {missing_columns}")
+            phone_number = "Phone number not found"
+            for col in phone_columns:
+                if col in best_match and best_match[col] != '':
+                    phone_number = best_match[col]
+                    break
+
+            # Constructing the response
+            response = f"The best person to contact is {contact_name} on {phone_number}."
+            st.write(response)
         else:
             st.write("No matches found")
     else:
