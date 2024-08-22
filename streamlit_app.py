@@ -8,11 +8,15 @@ def load_data_from_github(username, repo, branch, file_path):
     url = f"https://github.com/{username}/{repo}/raw/{branch}/{file_path}"
     response = requests.get(url)
     response.raise_for_status() # Check for request errors
-    return pd.read_excel(BytesIO(response.content))
+    data = pd.read_excel(BytesIO(response.content))
+    st.write("Data successfully loaded: ", data.head()) # Add a debug statement
+    return data
 
 def search_a2z_list(dataframe, query):
     # Filter rows based on query
     filtered_df = dataframe[dataframe.apply(lambda row: row.astype(str).str.contains(query, case=False).any(), axis=1)]
+    st.write(f"Query: {query}") # Debug: Show the input query
+    st.write("Filtered DataFrame: ", filtered_df) # Debug: Show the filtered DataFrame
     return filtered_df
 
 # Load the data from GitHub
