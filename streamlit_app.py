@@ -1,78 +1,26 @@
-import streamlit as st
-import pandas as pd
-import requests
-from io import BytesIO
-from openai import OpenAI
-
-# Ensure you have the most recent OpenAI API key and module
-openai_api_key = st.secrets["OPENAI_API_KEY"]
-client = OpenAI(api_key=openai_api_key)
-
-# GitHub file details
-username = "jamesnicholls4m"
-repo = "wordcloud-application"
-branch = "main"
-file_path = "NATA A2Z List - August 2024 - v1.xlsx"
-file_url = f"https://github.com/{username}/{repo}/raw/{branch}/{file_path}"
-
-# Function to load Excel file from GitHub
-@st.cache_data
-def load_data():
-    r = requests.get(file_url)
-    if r.status_code == 200:
-        data = BytesIO(r.content)
-        df = pd.read_excel(data)
-        return df
-    else:
-        st.error("Failed to load the file from GitHub.")
-        return pd.DataFrame()
-
-# Function to interact with GPT-4-Turbo model to search for the best match
-def search_a2z_list(input_text, df):
-    # Convert DataFrame to string for the prompt
-    data_sample = df.head(10).to_string(index=False)
-    prompt = f"Given the following data, find the best match for the input query:\n\nData:\n{data_sample}\n\nQuery: {input_text}"
-
-    # Define the conversation for the chat model
-    conversation = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": prompt}
-    ]
-
-    # Query the GPT-4-Turbo model
-    completion = client.chat.completions.create(
-        model="gpt-4-turbo",
-        messages=conversation,
-        temperature=0,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
-    )
-
-    response_text = completion.choices[0].message.content.strip()
-
-    # Simplistic parsing, adjust based on actual response format
-    if "Name:" in response_text and "Phone:" in response_text:
-        name = response_text.split("Name:")[1].split("Phone:")[0].strip()
-        phone = response_text.split("Phone:")[1].strip()
-    else:
-        name = "Not found"
-        phone = "Not found"
-        
-    return name, phone
-
-# Load data
-df = load_data()
-
-# Streamlit App configuration
-st.title("A2Z List Search Application")
-user_input = st.text_input("Enter query:", "Type here...")
-search_button = st.button("Search A2Z List")
-
-if search_button:
-    if user_input:
-        name, phone = search_a2z_list(user_input, df)
-        st.write(f"**Name:** {name}")
-        st.write(f"**Phone:** {phone}")
-    else:
-        st.write("Please enter a query to search the A2Z List.")
+if prompt := st.chat_input("What is up?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    # Display user message in chat message container
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    # Display assitant message in chat message container
+    with st.chat_message("assistant"):
+        message_placeholder = st.empty()
+        full_response = ""
+        # Simulate stream of response with milliseconds delay
+        for response in openai.ChatCompletion.create(
+            model=st.session_state["openai_model"],
+            messages=[
+                {"role": m["role"], "content": m["content"]}
+                for m in st.session_state.messages
+            ],
+            #will provide lively writing
+            stream=True,
+        ):
+            #get content in response
+            full_response += response.choices[0].delta.get("content", "")
+            # Add a blinking cursor to simulate typing
+            message_placeholder.markdown(full_response + "▌")
+        message_placeholder.markdown(full_response)
+    # Add assistant response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": full_response})
